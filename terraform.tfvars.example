@@ -1,0 +1,71 @@
+# ==============================================================================
+#  aws-acm — terraform.tfvars
+# ==============================================================================
+#  Copy this file to `terraform.tfvars`, set the values, then run:
+#      tofu init && tofu apply        (or:  terraform init && terraform apply)
+#
+# AUTHENTICATION — AWS:
+#   The AWS provider authenticates exactly like the AWS SDK/CLI, resolving
+#   credentials through a fixed precedence chain and (separately) requiring a
+#   region.
+#   Quick start: aws sso login --profile <name> (or `aws configure sso`
+#   first-time setup; `aws configure` for static keys). The SDK/Terraform read
+#   the SSO/credential cache automatically.
+#   Environment variables Terraform reads:
+#     AWS_ACCESS_KEY_ID  (secret) — Access key ID for static/temporary credentials.
+#     AWS_SECRET_ACCESS_KEY  (secret) — Secret access key paired with the access key ID.
+#     AWS_SESSION_TOKEN  (secret) — Session token for temporary (STS) credentials.
+#     AWS_REGION — Target AWS region (required); preferred over AWS_DEFAULT_REGION.
+#     AWS_DEFAULT_REGION — Legacy region variable; used if AWS_REGION is unset.
+#   For CloudFront, create the certificate in us-east-1.
+#   Full guide (auth + remote state):  docs/CONNECTING-PROVIDERS.md#aws
+#
+#  Secrets below read "REPLACE_ME" — never commit real secrets. Prefer
+#  TF_VAR_<name> environment variables or a secrets manager.
+#  Status: static-validated, live-test pending (see README.md).
+# ==============================================================================
+
+
+# ------------------------------------------------------------------------------
+#  REQUIRED — you must set these
+# ------------------------------------------------------------------------------
+
+# domain_name  —  string  (REQUIRED)
+#   Fully-qualified domain name for the certificate (the CN). A leading "*."
+#   requests a wildcard certificate, e.g. "*.example.com".
+#   Constraint: a valid DNS name (optional leading "*." wildcard), <= 253 chars.
+domain_name = "example.com"
+
+# ------------------------------------------------------------------------------
+#  OPTIONAL — defaults shown; uncomment a line to override
+# ------------------------------------------------------------------------------
+
+# subject_alternative_names  —  list  (optional, default: [])
+#   Additional FQDNs to secure on the same certificate (SANs). Each may be a
+#   wildcard. Do not repeat domain_name here.
+subject_alternative_names = ["www.example.com"]
+
+# validation_method  —  string  (optional, default: "DNS")
+#   How AWS proves you control the domain. DNS (recommended) auto-renews forever
+#   via a CNAME you publish once; EMAIL requires manual approval per renewal.
+#   Constraint: validation_method must be DNS or EMAIL.
+# validation_method = "DNS"
+
+# key_algorithm  —  string  (optional, default: "RSA_2048")
+#   Key algorithm. RSA_2048 has the broadest client compatibility; the EC
+#   algorithms are smaller/faster and still widely supported.
+#   Constraint: one of RSA_2048, EC_prime256v1, EC_secp384r1.
+# key_algorithm = "RSA_2048"
+
+# certificate_transparency_logging_preference  —  string  (optional, default: "ENABLED")
+#   Certificate Transparency (CT) logging. ENABLED is required for browser
+#   trust; only DISABLE for private/internal names kept out of public logs.
+#   Constraint: certificate_transparency_logging_preference must be ENABLED or DISABLED.
+# certificate_transparency_logging_preference = "ENABLED"
+
+# tags  —  map  (optional, default: {})
+#   Tags applied to the certificate.
+tags = {
+  Environment = "example"
+  ManagedBy   = "iac-bazaar"
+}
